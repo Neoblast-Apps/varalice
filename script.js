@@ -34,34 +34,65 @@ window.onload = function(){
     Proizvod = new Proizvod(1,1,"add",12);
     Proizvod.napraviOpisKratki();
     Prodaja.dodajProizvod(Proizvod)
-
-
-    var txt = document.createTextNode(" This text was added to the DIV.");
-    var item = this.document.getElementById("main-container")
-    console.log(item)
-
-    var html = '<div class="row"><div class="col-sm-12 col-md-6 col-lg-3"> <div class="sale"><div class="sale-image"><img src="1b87323a-d93c-44af-81a1-f06b4f06e5c8.jpg"> </div><div class="arrows"><div class="arrows-left"></div><div class="arrows-mid"></div><div class="arrows-right"></div></div><h2>addidas X233p</h2><p style="color:blue">88.72 kn</p><p>Stanje: 3</p><p>Opis: Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis corrupti, beatae vel voluptatum eveniet asperiores veniam, possimus doloremque maiores consectetur, dolores voluptatibus? Esse deserunt magnam qui deleniti ipsa a tempora.</p></div></div><div class="col-sm-12 col-md-6 col-lg-3"><div class="sale"></div></div><div class="col-sm-12 col-md-6 col-lg-3"><div class="sale"></div></div><div class="col-sm-12 col-md-6 col-lg-3"><div class="sale"></div></div></div></div>'
-    item.innerHTML = html;
-    item.innerHTML += html;   
+  
+    loadShopItemsForRow()
 }
 
+
+var array_id = [];
 loadShopItemsForRow = function (){
-    var data = new FormData();
-    data.append("key","2");// argument za poslat serveru
+    
+    this.sendHttpRequest()
+}
+
+sendHttpRequest = function(){
+    var array = []
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', "https://www.spotted.com.hr/api/index.php", true);// link servera
+    var object = {
+        key: "2",
+        array_id: array_id
+    }
+    var object_string = JSON.stringify(object)
+    xhr.open('POST', "https://graco-varalice.com/functions/get_artikls.php", true);// link servera
     xhr.onload = function () {
-        var res = JSON.parse(this.response);
-        if (res) {
-            console.log(res)
-            //alert(res.message);// napravi nes
-        } else {
-            console.log(data)
-            //alert(res.message);
+        //console.log(this.response)
+        if (this.response.includes("broj") && this.response.includes("opis")) {
+            var answer = this.response
+            for(let i = 0;i < 3;i++){
+                var start = answer.indexOf('{"broj',5)
+                var json = answer.slice(0,start);
+                answer = answer.slice(start,answer.length);
+                var object = JSON.parse(json);
+                array_id.push(object.id)
+                array.push(object)
+            }
+            var object = JSON.parse(answer);
+            array_id.push(object.id)
+            array.push(object)
+            console.log(array)
+
+
+            var item = document.getElementById("main-container")
+            var html = item.innerHTML +  '<div class="row">';
+            for(let i = 0;i < 4;i++){
+                html = html + '<div class="col-sm-12 col-md-6 col-lg-3"> <div class="sale"><div class="sale-image"><img src=' + array[i].broj + '.jpg> </div><div class="arrows"><div class="arrows-left"></div><div class="arrows-mid"></div><div class="arrows-right"></div></div>';
+                html = html + '<h2>' + array[i].naslov + '</h2><p style="color:blue">';
+                html = html + array[i].cijena + ' kn</p><p>Stanje: '
+                html = html + array[i].stanje  + '</p><p>Opis: Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis corrupti, beatae vel voluptatum eveniet asperiores veniam, possimus doloremque maiores consectetur, dolores voluptatibus? Esse deserunt magnam qui deleniti ipsa a tempora.</p></div></div>';
+
+
+            }
+            html = html + "</div></div></div>"
+            item.innerHTML = html;
+
+        } else if(this.response.includes("error")){
+
+        }else{
+
         }
     };
-    xhr.send(data);
+    xhr.send(object_string);
 }
 
 openCart = function (){
@@ -71,4 +102,26 @@ openCart = function (){
         document.getElementById("cart_main").style.display = "none"
     }
 
+}
+
+showNextImage = function(element){
+
+    if(document.getElementById(element + "a")){
+        document.getElementById(element + "a").setAttribute("src", element + "b.jpg")
+        document.getElementById( element + "a").id =  element + "b"
+        document.getElementById(element + "r").style.opacity = "0.3"
+        document.getElementById(element + "l").style.opacity = "1"
+        document.getElementById("1h").innerHTML = "2 / 2"
+    }
+
+}
+showPrevImage = function(element){
+
+    if(document.getElementById(element + "b")){
+        document.getElementById(element + "b").setAttribute("src", element + "a.jpg")
+        document.getElementById( element + "b").id =  element + "a"
+        document.getElementById(element + "l").style.opacity = "0.3"
+        document.getElementById(element + "r").style.opacity = "1"
+        document.getElementById("1h").innerHTML = "1 / 2"
+    }
 }
